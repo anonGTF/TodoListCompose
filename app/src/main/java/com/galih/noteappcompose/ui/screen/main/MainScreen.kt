@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
@@ -19,9 +20,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,12 +37,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.galih.noteappcompose.domain.entity.Todo
 import com.galih.noteappcompose.ui.component.Observer
+import com.galih.noteappcompose.ui.model.ActionState
 import com.galih.noteappcompose.ui.screen.destinations.AddScreenDestination
 import com.galih.noteappcompose.ui.screen.destinations.EditScreenDestination
 import com.galih.noteappcompose.util.Utils.toString
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import de.palm.composestateevents.EventEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RootNavGraph(start = true)
@@ -46,7 +54,25 @@ fun MainScreen(
     navigator: DestinationsNavigator,
     viewModel: MainViewModel = hiltViewModel()
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val toggleState: ActionState by viewModel.toggleStateStream.collectAsState()
+
+    EventEffect(
+        event = toggleState.eventSucceed,
+        onConsumed = viewModel::onConsumedToggleSucceed
+    ) {
+        snackbarHostState.showSnackbar("Success updating Todo")
+    }
+
+    EventEffect(
+        event = toggleState.eventFailed,
+        onConsumed = viewModel::onConsumedToggleFailed
+    ) {
+        snackbarHostState.showSnackbar(it)
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(text = "Todo List") },
@@ -68,17 +94,16 @@ fun MainScreen(
                     .fillMaxSize()
             ) {
                 Observer(
-                    data = viewModel.todos,
+                    data = viewModel.todoState,
                     onSuccess = {
                         LazyColumn(
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            items(it.size) { index ->
-                                val todo = it[index]
+                            items(items = it) { todo ->
                                 TodoCard(
                                     todo = todo,
                                     onClick = { navigator.navigate(EditScreenDestination(todo = todo)) },
-                                    onChecked = {}
+                                    onChecked = { viewModel.toggleFinished(todo) }
                                 )
                             }
                         }
