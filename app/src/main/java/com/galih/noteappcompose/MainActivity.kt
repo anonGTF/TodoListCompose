@@ -13,7 +13,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.galih.noteappcompose.ui.screen.NavGraphs
 import com.galih.noteappcompose.ui.theme.NoteAppComposeTheme
 import com.ramcosta.composedestinations.DestinationsNavHost
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
