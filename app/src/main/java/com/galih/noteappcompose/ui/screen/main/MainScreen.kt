@@ -19,6 +19,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -32,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -40,6 +42,7 @@ import com.galih.noteappcompose.ui.component.Observer
 import com.galih.noteappcompose.ui.model.ActionState
 import com.galih.noteappcompose.ui.screen.destinations.AddScreenDestination
 import com.galih.noteappcompose.ui.screen.destinations.EditScreenDestination
+import com.galih.noteappcompose.util.Utils.isTodayPassed
 import com.galih.noteappcompose.util.Utils.toString
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
@@ -99,7 +102,12 @@ fun MainScreen(
                         LazyColumn(
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            items(items = it) { todo ->
+                            val sortedList = it.sortedWith(
+                                compareBy<Todo> { it.isFinished }
+                                    .thenBy { it.dueDate }
+                                    .thenBy { it.title }
+                            )
+                            items(items = sortedList) { todo ->
                                 TodoCard(
                                     todo = todo,
                                     onClick = { navigator.navigate(EditScreenDestination(todo = todo)) },
@@ -130,6 +138,12 @@ fun TodoCard(
     onClick: () -> Unit,
     onChecked: () -> Unit
 ) {
+    val textStyle = if (todo.isFinished) {
+        MaterialTheme.typography.bodyMedium.copy(textDecoration = TextDecoration.LineThrough)
+    } else {
+        MaterialTheme.typography.bodyMedium
+    }
+
     Card(
         onClick = onClick,
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
@@ -147,10 +161,14 @@ fun TodoCard(
                Text(
                    text = todo.title,
                    fontWeight = FontWeight.Bold,
-                   fontSize = 16.sp
+                   fontSize = 16.sp,
+                   style = textStyle
                )
                Spacer(modifier = Modifier.height(4.dp))
-               Text(text = "due: ${todo.dueDate.toString("dd MMMM yyyy")}")
+               Text(
+                   text = "due: ${todo.dueDate.toString("dd MMMM yyyy")}",
+                   color = if (todo.dueDate.isTodayPassed()) Color.Red else Color.Black
+               )
            }
            Checkbox(
                checked = todo.isFinished,

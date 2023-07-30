@@ -42,6 +42,23 @@ object Utils {
         return formatter.format(this)
     }
 
+    fun Date.isTodayPassed(): Boolean {
+        val currentDate = Calendar.getInstance()
+        currentDate.set(Calendar.HOUR_OF_DAY, 0)
+        currentDate.set(Calendar.MINUTE, 0)
+        currentDate.set(Calendar.SECOND, 0)
+        currentDate.set(Calendar.MILLISECOND, 0)
+
+        val calendarDueDate = Calendar.getInstance()
+        calendarDueDate.time = this
+        calendarDueDate.set(Calendar.HOUR_OF_DAY, 0)
+        calendarDueDate.set(Calendar.MINUTE, 0)
+        calendarDueDate.set(Calendar.SECOND, 0)
+        calendarDueDate.set(Calendar.MILLISECOND, 0)
+
+        return calendarDueDate.before(currentDate)
+    }
+
     fun LocalDate.toDate(): Date = Date.from(this.atStartOfDay(ZoneId.systemDefault()).toInstant())
 
 
