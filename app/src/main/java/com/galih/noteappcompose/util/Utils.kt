@@ -1,6 +1,8 @@
 package com.galih.noteappcompose.util
 
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -34,6 +36,10 @@ object Utils {
     fun Date.toString(format: String, locale: Locale = Locale.getDefault()): String {
         val formatter = SimpleDateFormat(format, locale)
         return formatter.format(this)
+    }
+
+    fun LocalDate.toDate(): Date {
+        return Date.from(this.atStartOfDay(ZoneId.systemDefault()).toInstant())
     }
 
     fun <T> MutableList<T>.getOrDefault(index: Int, default: T): T {

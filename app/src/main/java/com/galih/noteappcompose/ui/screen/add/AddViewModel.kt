@@ -1,17 +1,12 @@
 package com.galih.noteappcompose.ui.screen.add
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.galih.noteappcompose.domain.entity.Todo
 import com.galih.noteappcompose.domain.usecase.UpsertTodoUseCase
 import com.galih.noteappcompose.util.Resource
 import com.galih.noteappcompose.util.Utils
+import com.galih.noteappcompose.util.Utils.toDate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.palm.composestateevents.StateEvent
 import de.palm.composestateevents.StateEventWithContent
@@ -21,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,12 +33,12 @@ class AddViewModel @Inject constructor(
             _addStateStream.update { newState }
         }
 
-    fun addTodo(title: String, description: String) = viewModelScope.launch {
+    fun addTodo(title: String, description: String, date: LocalDate) = viewModelScope.launch {
         val todo = Todo(
             0,
             title,
             description,
-            Utils.getCurrentDateTime(),
+            date.toDate(),
             false
         )
         upsertTodoUseCase(todo).collect { result ->
