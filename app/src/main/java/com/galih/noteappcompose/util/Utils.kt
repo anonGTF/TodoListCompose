@@ -1,5 +1,9 @@
 package com.galih.noteappcompose.util
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
@@ -63,4 +67,18 @@ object Utils {
             is Resource.Loading -> onLoading(this)
         }
     }
+
+    fun <T> Flow<T>.wrapWithResource(): Flow<Resource<T>> =
+        this.map {data ->
+            if (data is List<*> && data.isNotEmpty()) {
+                Resource.Success(data)
+            }
+            if (data != null) {
+                Resource.Success(data)
+            } else {
+                Resource.Loading()
+            }
+        }
+            .catch { e -> emit(Resource.Error(e.localizedMessage ?: "Unknown error")) }
+            .onStart { emit(Resource.Loading()) } as Flow<Resource<T>>
 }
