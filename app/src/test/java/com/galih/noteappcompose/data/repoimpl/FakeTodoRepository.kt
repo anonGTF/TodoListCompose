@@ -28,7 +28,7 @@ class FakeTodoRepository : TodoRepository {
             title = Faker.aString(),
             description = Faker.aString(),
             dueDate = Faker.aDate(),
-            isFinished = Faker.aBoolean()
+            isFinished = false
         )
 
     override fun getTodos(): Flow<List<Todo>> = flowOf(fakeTodos)
