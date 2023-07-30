@@ -1,6 +1,5 @@
 package com.galih.noteappcompose.ui.screen.add
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,23 +34,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.galih.noteappcompose.ui.component.DatePickerDialog
+import com.galih.noteappcompose.ui.model.ActionState
+import com.galih.noteappcompose.ui.model.TodoForm
 import com.galih.noteappcompose.ui.screen.destinations.MainScreenDestination
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.vanpra.composematerialdialogs.MaterialDialog
-import com.vanpra.composematerialdialogs.MaterialDialogState
-import com.vanpra.composematerialdialogs.datetime.date.datepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import de.palm.composestateevents.EventEffect
 import de.palm.composestateevents.NavigationEventEffect
 import me.naingaungluu.formconductor.FieldResult
 import me.naingaungluu.formconductor.FormResult
-import me.naingaungluu.formconductor.annotations.Form
-import me.naingaungluu.formconductor.annotations.MinLength
 import me.naingaungluu.formconductor.composeui.field
 import me.naingaungluu.formconductor.composeui.form
 import java.time.LocalDate
@@ -65,7 +60,7 @@ fun AddScreen(
     viewModel: AddViewModel = hiltViewModel(),
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val addState: ActionState<Unit> by viewModel.addStateStream.collectAsState()
+    val addState: ActionState by viewModel.addStateStream.collectAsState()
 
     var pickedDate by remember {
         mutableStateOf(LocalDate.now())
@@ -80,7 +75,7 @@ fun AddScreen(
     val dateDialogState = rememberMaterialDialogState()
 
     NavigationEventEffect(
-        event = addState.addingSucceed,
+        event = addState.eventSucceed,
         onConsumed = viewModel::onConsumedAddingSucceed
     ) {
         navigator.navigate(MainScreenDestination()) {
@@ -89,7 +84,7 @@ fun AddScreen(
     }
 
     EventEffect(
-        event = addState.addingFailed,
+        event = addState.eventFailed,
         onConsumed = viewModel::onConsumedAddingFailed
     ) {
         snackbarHostState.showSnackbar(it)
@@ -114,8 +109,8 @@ fun AddScreen(
                     .padding(padding)
                     .padding(16.dp)
             ) {
-                form(AddTodoForm::class) {
-                    field(AddTodoForm::title) {
+                form(TodoForm::class) {
+                    field(TodoForm::title) {
                         OutlinedTextField(
                             value = state.value?.value.orEmpty(),
                             onValueChange = ::setField,
@@ -134,7 +129,7 @@ fun AddScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    field(AddTodoForm::description) {
+                    field(TodoForm::description) {
                         OutlinedTextField(
                             value = state.value?.value.orEmpty(),
                             onValueChange = ::setField,
@@ -207,32 +202,3 @@ fun AddScreen(
         }
     )
 }
-
-@Composable
-fun DatePickerDialog(dialogState: MaterialDialogState, onDateChanged: (LocalDate) -> Unit) {
-    val currentDate = LocalDate.now()
-    MaterialDialog(
-        dialogState = dialogState,
-        buttons = {
-            positiveButton(text = "Ok")
-            negativeButton(text = "Cancel")
-        }
-    ) {
-        datepicker(
-            initialDate = LocalDate.now(),
-            title = "Pick due date",
-            allowedDateValidator = {
-                !it.isBefore(currentDate)
-            },
-            onDateChange = onDateChanged
-        )
-    }
-}
-
-@Form
-data class AddTodoForm(
-    @MinLength(3)
-    val title: String = "",
-    @MinLength(3)
-    val description: String = "",
-)

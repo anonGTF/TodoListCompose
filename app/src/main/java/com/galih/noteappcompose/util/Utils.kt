@@ -38,15 +38,29 @@ object Utils {
         return formatter.format(this)
     }
 
-    fun LocalDate.toDate(): Date {
-        return Date.from(this.atStartOfDay(ZoneId.systemDefault()).toInstant())
-    }
+    fun LocalDate.toDate(): Date = Date.from(this.atStartOfDay(ZoneId.systemDefault()).toInstant())
+
+
+    fun Date.toLocalDate(): LocalDate = this.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+
 
     fun <T> MutableList<T>.getOrDefault(index: Int, default: T): T {
         return try {
             get(index)
         } catch (e: IndexOutOfBoundsException) {
             default
+        }
+    }
+
+    inline fun <T> Resource<T>.map(
+        onSuccess: (Resource.Success<T>) -> Unit,
+        onError: (Resource.Error<T>) -> Unit,
+        onLoading: (Resource.Loading<T>) -> Unit,
+    ) {
+        when(this) {
+            is Resource.Success -> onSuccess(this)
+            is Resource.Error -> onError(this)
+            is Resource.Loading -> onLoading(this)
         }
     }
 }
